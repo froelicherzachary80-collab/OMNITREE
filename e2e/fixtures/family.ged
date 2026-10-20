@@ -1,0 +1,168 @@
+0 HEAD
+1 SOUR SYNTHGEN
+2 VERS 1.0
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+1 CHAR UTF-8
+0 @S1@ SOUR
+1 TITL Synthetic Parish Register of Eastbrook
+1 AUTH Test Archive
+0 @S2@ SOUR
+1 TITL Synthetic 1910 Census, New York
+0 @N1@ NOTE Shared note text
+1 CONT continued line
+0 @I1@ INDI
+1 NAME Aldric /Thornwood/
+2 GIVN Aldric
+2 SURN Thornwood
+1 SEX M
+1 BIRT
+2 DATE ABT 1850
+2 PLAC Eastbrook, Yorkshire, England
+2 SOUR @S1@
+3 PAGE folio 12
+3 QUAY 3
+1 DEAT
+2 DATE 12 MAR 1920
+2 PLAC Eastbrook, Yorkshire, England
+1 OCCU Wheelwright
+1 _MILT Served in local militia
+2 DATE 1870
+1 FAMS @F1@
+0 @I2@ INDI
+1 NAME Mabel /Finch/
+1 SEX F
+1 BIRT
+2 DATE 1852
+1 NOTE @N1@
+1 FAMS @F1@
+0 @I3@ INDI
+1 NAME Edwin /Thornwood/
+1 SEX M
+1 BIRT
+2 DATE 4 JUN 1875
+2 PLAC Eastbrook, Yorkshire, England
+2 SOUR @S1@
+1 RESI
+2 DATE 1910
+2 PLAC Brooklyn, New York, USA
+3 MAP
+4 LATI N40.65
+4 LONG W73.95
+2 SOUR @S2@
+1 FAMC @F1@
+1 FAMS @F2@
+1 FAMS @F6@
+0 @I4@ INDI
+1 NAME Clara /Thornwood/
+1 SEX F
+1 BIRT
+2 DATE BET 1877 AND 1879
+1 FAMC @F1@
+1 FAMS @F3@
+0 @I5@ INDI
+1 NAME Rose /Marlow/
+1 SEX F
+1 FAMS @F2@
+0 @I6@ INDI
+1 NAME Henry /Thornwood/
+1 SEX M
+1 BIRT
+2 DATE 1900
+2 PLAC New York, New York, USA
+1 FAMC @F2@
+1 FAMS @F4@
+0 @I7@ INDI
+1 NAME Silas /Brook/
+1 SEX M
+1 FAMS @F3@
+0 @I8@ INDI
+1 NAME Ivy /Brook/
+1 SEX F
+1 BIRT
+2 DATE 1902
+1 FAMC @F3@
+1 FAMS @F5@
+0 @I9@ INDI
+1 NAME Owen /Brook/
+1 SEX M
+1 BIRT
+2 DATE 1905
+1 FAMC @F3@
+2 PEDI adopted
+0 @I10@ INDI
+1 NAME June /Vale/
+1 SEX F
+1 FAMS @F4@
+0 @I11@ INDI
+1 NAME Arthur /Thornwood/
+1 SEX M
+1 BIRT
+2 DATE 1925
+1 FAMC @F4@
+0 @I12@ INDI
+1 NAME Paul /Reed/
+1 SEX M
+1 FAMS @F5@
+0 @I13@ INDI
+1 NAME Lena /Reed/
+1 SEX F
+1 BIRT
+2 DATE 1928
+1 FAMC @F5@
+0 @I14@ INDI
+1 NAME Grace /Holt/
+1 SEX F
+1 FAMS @F6@
+0 @I15@ INDI
+1 NAME Walter /Thornwood/
+1 SEX M
+1 BIRT
+2 DATE 1910
+1 FAMC @F6@
+0 @I16@ INDI
+1 NAME Henry /Thornwood/
+1 SEX M
+1 BIRT
+2 DATE 1900
+2 PLAC Boston, Massachusetts, USA
+0 @I17@ INDI
+1 NAME Aldrick /Thornwood/
+1 SEX M
+1 BIRT
+2 DATE 1850
+2 PLAC Eastbrook, Yorkshire, England
+0 @F1@ FAM
+1 HUSB @I1@
+1 WIFE @I2@
+1 CHIL @I3@
+1 CHIL @I4@
+1 MARR
+2 DATE 1874
+2 PLAC Eastbrook, Yorkshire, England
+2 SOUR @S1@
+0 @F2@ FAM
+1 HUSB @I3@
+1 WIFE @I5@
+1 CHIL @I6@
+0 @F3@ FAM
+1 HUSB @I7@
+1 WIFE @I4@
+1 CHIL @I8@
+1 CHIL @I9@
+0 @F4@ FAM
+1 HUSB @I6@
+1 WIFE @I10@
+1 CHIL @I11@
+0 @F5@ FAM
+1 HUSB @I12@
+1 WIFE @I8@
+1 CHIL @I13@
+0 @F6@ FAM
+1 HUSB @I3@
+1 WIFE @I14@
+1 CHIL @I15@
+0 @R1@ REPO
+1 NAME Synthetic Record Office
+0 TRLR
