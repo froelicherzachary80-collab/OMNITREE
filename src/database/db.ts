@@ -5,6 +5,8 @@ import type {
 } from './types';
 
 export interface StoredExtension extends ExtensionRecord { id: string; workspaceId: string; importId?: string }
+/** Snapshot taken before a reviewed merge so it can be undone exactly. */
+export interface MergeRecord { id: string; workspaceId: string; at: number; keepId: string; dropId: string; before: { persons: Person[]; families: Family[]; kits: DnaKit[] }; undone: boolean }
 export interface MemoryFact { id: string; workspaceId: string; kind: 'approved-fact' | 'rejected-match' | 'confirmed-match' | 'note'; text: string; personIds: string[]; at: number }
 
 export class OmniDB extends Dexie {
@@ -23,6 +25,7 @@ export class OmniDB extends Dexie {
   memory!: Table<MemoryFact, string>;
   audit!: Table<AuditEvent, string>;
   consents!: Table<PrivacyConsent, string>;
+  merges!: Table<MergeRecord, string>;
 
   constructor(name = 'omnitree') {
     super(name);
@@ -44,10 +47,12 @@ export class OmniDB extends Dexie {
       audit: 'id, workspaceId, at',
       consents: 'id, workspaceId, personId',
     });
+    // v0.2: merge history for undoable merges.
+    this.version(2).stores({ merges: 'id, workspaceId, at' });
   }
 }
 
-export const DATA_TABLES = ['workspaces', 'persons', 'families', 'sources', 'media', 'imports', 'extensions', 'dnaKits', 'dnaComparisons', 'hypotheses', 'historical', 'aiSessions', 'memory', 'audit', 'consents'] as const;
+export const DATA_TABLES = ['workspaces', 'persons', 'families', 'sources', 'media', 'imports', 'extensions', 'dnaKits', 'dnaComparisons', 'hypotheses', 'historical', 'aiSessions', 'memory', 'audit', 'consents', 'merges'] as const;
 export type DataTable = (typeof DATA_TABLES)[number];
 
 let instance: OmniDB | undefined;

@@ -39,7 +39,7 @@ export function Onboarding() {
   return (
     <div className="mx-auto grid min-h-full max-w-xl place-items-center p-4">
       <div className="panel w-full p-6">
-        <div className="flex items-center gap-3"><img src="/icon.svg" className="h-12 w-12" alt="" /><div><h1 className="text-2xl font-semibold">Omni<span className="gold">Tree</span></h1><div className="muted text-sm">World Family Tree · local-first genealogy</div></div></div>
+        <div className="flex items-center gap-3"><img src={`${import.meta.env.BASE_URL}icon.svg`} className="h-12 w-12" alt="" /><div><h1 className="text-2xl font-semibold">Omni<span className="gold">Tree</span></h1><div className="muted text-sm">World Family Tree · local-first genealogy</div></div></div>
         {store.workspaces.length > 0 && (
           <div className="mt-6">
             <div className="label mb-2">Open a workspace</div>

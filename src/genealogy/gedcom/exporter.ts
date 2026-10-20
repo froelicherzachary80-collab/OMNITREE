@@ -33,7 +33,7 @@ export function exportGedcom(input: ExportInput): string {
 
   const out: string[] = [
     '0 HEAD', '1 GEDC', '2 VERS 5.5.1', '2 FORM LINEAGE-LINKED', '1 CHAR UTF-8',
-    '1 SOUR OMNITREE', '2 NAME OmniTree', '2 VERS 0.1.0',
+    '1 SOUR OMNITREE', '2 NAME OmniTree', '2 VERS 0.2.0',
     `1 DATE ${new Date().toUTCString().slice(5, 16).toUpperCase()}`,
   ];
 

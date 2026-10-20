@@ -38,6 +38,9 @@ test('workspace → GEDCOM import → tree → relationship → OmniAI → DNA',
   await page.getByRole('button', { name: 'Ask' }).click();
   await expect(page.getByText(/2 parent\(s\) and 2 grandparent/)).toBeVisible();
 
+  await page.goto('/#/map');
+  await expect(page.getByText(/Mapped events \(\d+: \d+ recorded, \d+ approximate\)/)).toBeVisible();
+
   await page.goto('/#/dna');
   await page.getByLabel('Kit owner (required)').click();
   await page.getByLabel('Kit owner (required)').fill('Arthur');

@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../app/store';
 import { Card, PersonLink } from '../components/common';
 import { checkConsistency, findDuplicates, researchLeads, soundex, type DuplicateCandidate } from '../genealogy/discovery/discovery';
-import { mergePersons } from '../database/repo';
+import { mergePersons, undoMerge } from '../database/repo';
+import type { MergeRecord } from '../database/db';
 import { OmniMemory } from '../ai/memory/omniMemory';
 import { getDb } from '../database/db';
 import { displayName, eventOf } from '../database/types';
@@ -40,6 +41,7 @@ export default function DiscoverPage() {
         ))}</div>
       </Card>
       {review && <MergeReview d={review} onClose={() => setReview(undefined)} />}
+      <MergeHistory />
       <Card title={`Date & age conflicts (${issues.length})`}>
         <ul className="space-y-1 text-sm">{issues.slice(0, 100).map((i, k) => <li key={k}><span className={`chip ${i.severity === 'error' ? 'chip-miss' : 'chip-inf'}`}>{i.kind}</span> <PersonLink id={i.personId} showYears={false} /> — {i.message}</li>)}</ul>
         {!issues.length && <p className="text-sm muted">No conflicts detected.</p>}
@@ -73,9 +75,27 @@ function MergeReview({ d, onClose }: { d: DuplicateCandidate; onClose: () => voi
       <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
         <label><input type="radio" checked={keepA} onChange={() => setKeepA(true)} /> Keep A as primary</label>
         <label><input type="radio" checked={!keepA} onChange={() => setKeepA(false)} /> Keep B as primary</label>
-        <button className="btn btn-primary" onClick={async () => { await mergePersons(keepA ? a : b, keepA ? b : a); await OmniMemory.remember(store.workspace!.id, 'confirmed-match', `Merged ${displayName(a)} and ${displayName(b)}`, [d.a, d.b]); store.toast('Profiles merged'); onClose(); await store.reload(); }}>Confirm merge</button>
+        <button className="btn btn-primary" onClick={async () => { await mergePersons(keepA ? a : b, keepA ? b : a); await OmniMemory.remember(store.workspace!.id, 'confirmed-match', `Merged ${displayName(a)} and ${displayName(b)}`, [d.a, d.b]); store.toast('Profiles merged — undo it under Merge history'); onClose(); await store.reload(); }}>Confirm merge</button>
       </div>
       <p className="mt-2 text-xs muted">Merging keeps all names, events, notes and citations from both profiles. It is recorded in the audit log; restore from backup to reverse.</p>
+    </Card>
+  );
+}
+
+function MergeHistory() {
+  const store = useStore();
+  const [rows, setRows] = useState<MergeRecord[]>([]);
+  useEffect(() => { store.workspace && getDb().merges.where('workspaceId').equals(store.workspace.id).reverse().sortBy('at').then(setRows); }, [store.workspace, store.version]);
+  if (!rows.length) return null;
+  return (
+    <Card title="Merge history">
+      <ul className="space-y-2 text-sm">{rows.map((m) => (
+        <li key={m.id} className="panel-2 flex flex-wrap items-center gap-2 p-2">
+          <span className="flex-1">{new Date(m.at).toLocaleString()} — {m.before.persons.map((p) => displayName(p)).join(' + ')}</span>
+          {m.undone ? <span className="chip">undone</span> : <button className="btn" onClick={async () => { try { await undoMerge(m.id); store.toast('Merge undone'); await store.reload(); } catch (e) { alert((e as Error).message); } }}>Undo merge</button>}
+        </li>
+      ))}</ul>
+      <p className="mt-1 text-xs muted">Undo restores both profiles, their family links and DNA kit owners as they were just before the merge. Edits made to the merged profile afterwards are lost.</p>
     </Card>
   );
 }

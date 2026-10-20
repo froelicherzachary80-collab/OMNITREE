@@ -1,7 +1,7 @@
 # Testing
 
 ```bash
-npm test                 # Vitest: 57 tests across 7 files
+npm test                 # Vitest: 62 tests across 8 files
 npx tsc -p .             # type checking
 npm run build            # production build
 PLAYWRIGHT_CHROMIUM=/opt/pw-browsers/chromium npm run test:e2e   # end-to-end test
@@ -15,4 +15,5 @@ Coverage by area:
 - `database.test.ts` (fake-indexeddb): committing several imports and rolling one back, transaction atomicity, required kit owner, one person with two kits, encryption with the wrong key, DNA kept out of the audit log, privacy of AI summaries, encrypted backup and restore, deletion, reviewed merge.
 - `ai.test.ts`: answers grounded in tool results for each command family, asking for clarification on ambiguous names, no made-up answers, DNA comparison.
 - `performance.test.ts`: synthetic 15,000-person file. Typical timings: parse about 250 ms, indexing plus queries about 70 ms, duplicate and consistency scans plus export about 2.5 s.
-- `e2e/workflow.spec.ts`: create workspace, preview and commit a GEDCOM import, compute a relationship, set the home person, edit and undo, OmniAI query, upload and link a DNA kit.
+- `v02.test.ts`: gazetteer matching, merge undo that restores people and links exactly, model planner that accepts only supported tools, grounding check against added people, years and cM figures (mock engine).
+- `e2e/workflow.spec.ts`: create workspace, preview and commit a GEDCOM import, compute a relationship, set the home person, edit and undo, OmniAI query, map view, upload and link a DNA kit.

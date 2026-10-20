@@ -181,15 +181,22 @@ export async function deleteWorkspace(workspaceId: ID) {
     for (const t of DATA_TABLES) {
       if (t === 'workspaces') await db.workspaces.delete(workspaceId);
       else if (t === 'dnaComparisons' || t === 'historical') continue;
+      else if (t === 'merges') await db.merges.where('workspaceId').equals(workspaceId).delete();
       else await db.table(t).where('workspaceId').equals(workspaceId).delete();
     }
   });
 }
 
 /** Merge `drop` into `keep` after user review. Names/events/notes are unioned; family links re-pointed. */
-export async function mergePersons(keep: Person, drop: Person) {
+export async function mergePersons(keep: Person, drop: Person): Promise<ID> {
   const db = getDb();
-  await db.transaction('rw', [db.persons, db.families, db.dnaKits, db.audit], async () => {
+  const mergeId = newId('merge');
+  await db.transaction('rw', [db.persons, db.families, db.dnaKits, db.audit, db.merges], async () => {
+    const touched = (await db.families.where('workspaceId').equals(keep.workspaceId).toArray()).filter((f) => [keep.id, drop.id].some((id) => f.partnerIds.includes(id) || f.children.some((c) => c.personId === id)));
+    await db.merges.add({
+      id: mergeId, workspaceId: keep.workspaceId, at: Date.now(), keepId: keep.id, dropId: drop.id, undone: false,
+      before: { persons: [(await db.persons.get(keep.id))!, (await db.persons.get(drop.id))!], families: touched, kits: await db.dnaKits.where('personId').anyOf([keep.id, drop.id]).toArray() },
+    });
     const names = [...keep.names, ...drop.names.filter((n) => !keep.names.some((k) => k.full === n.full)).map((n) => ({ ...n, type: n.type ?? 'aka' }))];
     await db.persons.put({
       ...keep, names, events: [...keep.events, ...drop.events], notes: [...keep.notes, ...drop.notes],
@@ -206,6 +213,22 @@ export async function mergePersons(keep: Person, drop: Person) {
     }
     await db.persons.delete(drop.id);
     await audit(keep.workspaceId, 'merge', 'person', keep.id, `merged ${drop.id} into ${keep.id}`);
+  });
+  return mergeId;
+}
+
+/** Restore both profiles, their family links and kit owners exactly as they were before the merge. */
+export async function undoMerge(mergeId: ID) {
+  const db = getDb();
+  await db.transaction('rw', [db.persons, db.families, db.dnaKits, db.audit, db.merges], async () => {
+    const m = await db.merges.get(mergeId);
+    if (!m) throw new Error('Merge not found');
+    if (m.undone) throw new Error('This merge was already undone');
+    await db.persons.bulkPut(m.before.persons);
+    await db.families.bulkPut(m.before.families);
+    await db.dnaKits.bulkPut(m.before.kits);
+    await db.merges.update(mergeId, { undone: true });
+    await audit(m.workspaceId, 'undo-merge', 'person', m.keepId, `restored ${m.dropId}`);
   });
 }
 

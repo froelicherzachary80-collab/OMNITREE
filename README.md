@@ -4,6 +4,16 @@ OmniTree is a genealogy web app that runs entirely in your browser and stores ev
 
 Your data stays in your browser (IndexedDB). There are no accounts and no cloud, and nothing is uploaded.
 
+## Free hosted website (GitHub Pages)
+
+`.github/workflows/deploy.yml` runs the tests, builds the app and publishes it to GitHub Pages, at no cost.
+
+One-time setup by the repository owner: **Settings → Pages → Build and deployment → Source: GitHub Actions**. After that, every push to `main` (or a manual run in the **Actions** tab) deploys to:
+
+**https://froelicherzachary80-collab.github.io/OMNITREE/**
+
+The build uses relative paths and hash routing, so it works under any sub-path and on any static host (Netlify, Cloudflare Pages, Vercel: build command `npm run build`, output folder `dist`). Hosting serves only the app's code; your family data and DNA stay in each visitor's own browser.
+
 ## Quick start
 
 ```bash
@@ -20,6 +30,13 @@ PLAYWRIGHT_CHROMIUM=/opt/pw-browsers/chromium npm run test:e2e
 Requirements: Node 20+ and a modern browser (Safari 16+, Chrome, Firefox, Edge).
 
 To try it out, create a workspace and import `e2e/fixtures/family.ged` (a fictional family). Then upload `e2e/fixtures/synthetic-ancestrydna.txt` and `synthetic-23andme.txt` and link both to the same person.
+
+## New in v0.2
+- **Optional local AI model** (WebLLM, needs WebGPU). It picks a tool only when no built-in command matches, and writes a short summary of the tool's facts. A grounding check discards any summary that mentions people, years or DNA figures not in the results.
+- **MapLibre world map** with clustering, branch colours and migration lines. Places without recorded coordinates can be shown at approximate positions from an offline gazetteer, marked as such. If the basemap can't load, the offline SVG map is used.
+- **Undoable merges** (database schema v2).
+- **Per-fact citation editor**: change page and quality, move a citation to another fact, or remove it.
+- **Free hosting** through the GitHub Pages workflow.
 
 ## What works in v0.1
 

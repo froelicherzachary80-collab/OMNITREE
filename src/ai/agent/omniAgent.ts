@@ -78,8 +78,11 @@ export class OmniAgent {
 
   detectIntent(q: string): Intent | undefined { return INTENTS.find((i) => i.test.test(q)); }
 
-  async ask(q: string): Promise<AgentAnswer> {
-    const intent = this.detectIntent(q);
+  /** Names of supported intents, for planners that choose a tool. */
+  static intentNames() { return INTENTS.map((i) => i.name); }
+
+  async ask(q: string, opts: { intentOverride?: string } = {}): Promise<AgentAnswer> {
+    const intent = (opts.intentOverride && INTENTS.find((i) => i.name === opts.intentOverride)) || this.detectIntent(q);
     const tc: T.ToolContext = { graph: this.ctx.graph, sources: new Map(this.ctx.sources.map((s) => [s.id, s])) };
     if (!intent) {
       const hits = this.index.search(q, 8);

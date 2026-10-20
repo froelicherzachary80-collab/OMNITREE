@@ -21,7 +21,8 @@ src/
     tools/      Deterministic genealogy tools (each returns facts with basis + source IDs)
     retrieval/  NameIndex (n-gram mention resolution, keyword retrieval, DNA-free summaries)
     memory/     OmniMemory: approved facts, rejected/confirmed matches, hypotheses
-    models/     Local model catalog + WebGPU/WASM capability detection (adapter not yet enabled)
+    models/     Model catalog, capability detection, WebLLM loader, tool planner and grounding check
+  maps/         Offline gazetteer (approximate centroids) and MapLibre view
   security/     WebCrypto PBKDF2 + AES-GCM, vault, sealed backups
   exports/      ZIP reader/writer
   tests/        Vitest suites + synthetic fixtures

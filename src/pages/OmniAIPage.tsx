@@ -7,8 +7,9 @@ import { OmniMemory } from '../ai/memory/omniMemory';
 import { getDb } from '../database/db';
 import { newId, type AiResearchSession } from '../database/types';
 import { detectCapabilities, MODEL_CATALOG, type Capabilities } from '../ai/models/localModel';
+import { loadWebLLM, phraseAnswer, planIntent, type ChatEngine, type Phrasing } from '../ai/models/llmPlanner';
 
-interface Msg { role: 'user' | 'assistant'; text: string; answer?: AgentAnswer }
+interface Msg { role: 'user' | 'assistant'; text: string; answer?: AgentAnswer; phrasing?: Phrasing }
 
 export default function OmniAIPage() {
   const store = useStore();
@@ -18,6 +19,8 @@ export default function OmniAIPage() {
   const [busy, setBusy] = useState(false);
   const [review, setReview] = useState<AgentAnswer>();
   const [caps, setCaps] = useState<Capabilities>();
+  const [engine, setEngine] = useState<ChatEngine>();
+  const [modelName, setModelName] = useState('');
   const session = useRef<AiResearchSession>();
   const endRef = useRef<HTMLDivElement>(null);
   const agent = useMemo(() => new OmniAgent({ graph, sources, rootId: workspace?.rootPersonId, selectedId, kits, loadVariants: (k) => readKitVariants(k, vaultKey) }), [graph, sources, workspace?.rootPersonId, selectedId, kits, vaultKey]);
@@ -29,8 +32,12 @@ export default function OmniAIPage() {
     setBusy(true); setQ('');
     setMsgs((m) => [...m, { role: 'user', text }]);
     try {
-      const answer = await agent.ask(text);
-      setMsgs((m) => [...m, { role: 'assistant', text: answer.text, answer }]);
+      let intentOverride: string | undefined;
+      if (engine && !agent.detectIntent(text)) intentOverride = await planIntent(engine, text);
+      const answer = await agent.ask(text, { intentOverride });
+      let phrasing: Phrasing | undefined;
+      if (engine && answer.results.length) phrasing = await phraseAnswer(engine, text, answer, graph).catch(() => undefined);
+      setMsgs((m) => [...m, { role: 'assistant', text: answer.text, answer, phrasing }]);
       session.current ??= { id: newId('ai'), workspaceId: workspace.id, createdAt: Date.now(), messages: [] };
       session.current.messages.push({ role: 'user', text, at: Date.now() }, { role: 'assistant', text: answer.text, at: Date.now(), personIds: answer.personIds.slice(0, 50) });
       await getDb().aiSessions.put(session.current);
@@ -61,11 +68,7 @@ export default function OmniAIPage() {
           <PersonPicker label="“This person”" value={selectedId} onChange={(id) => store.select(id)} />
           <p className="mt-2 text-xs muted">“My/me” refers to the home person{workspace?.rootPersonId ? '' : ' (not set — choose one in a profile)'}. For two-person questions, name both people or use the home + selected person.</p>
         </Card>
-        <Card title="Local language model">
-          <p className="text-sm">WebGPU: <b>{caps ? (caps.webgpu ? 'available' : 'not available') : '…'}</b> · WASM: <b>{caps?.wasm ? 'yes' : '…'}</b>{caps?.deviceMemoryGB ? ` · ~${caps.deviceMemoryGB} GB RAM` : ''}</p>
-          <ul className="mt-2 text-xs muted space-y-1">{MODEL_CATALOG.map((m) => <li key={m.id}>{m.label}: {m.downloadMB} MB download, ~{m.memoryGB} GB memory</li>)}</ul>
-          <p className="mt-2 text-xs muted">Not enabled in v0.1: the deterministic engine above answers every supported command without a model. Optional model loading is on the roadmap and will only phrase tool results.</p>
-        </Card>
+        <ModelPanel caps={caps} loaded={modelName} onLoaded={(e, n) => { setEngine(() => e); setModelName(n); }} onUnload={() => { setEngine(undefined); setModelName(''); }} />
         <MemoryPanel />
       </div>
       {review && <ReviewDialog answer={review} onClose={() => setReview(undefined)} />}
@@ -82,6 +85,9 @@ function Answer({ m, onPropose }: { m: Msg; onPropose: () => void }) {
   );
   return (
     <div className="panel-2 p-3 text-sm space-y-2">
+      {m.phrasing && (m.phrasing.accepted
+        ? <div className="rounded-lg border border-emerald-500/40 p-2"><span className="label">Model summary (checked against tool facts)</span><p>{m.phrasing.text}</p></div>
+        : <div className="text-xs text-amber-500">Model summary discarded: {m.phrasing.reason}. Showing tool results only.</div>)}
       {a.results.map((r, i) => (
         <div key={i}>
           <div className="font-semibold">{r.summary}</div>
@@ -125,6 +131,32 @@ function MemoryPanel() {
   return (
     <Card title="OmniMemory">
       {facts.length ? <ul className="text-xs space-y-1">{facts.slice(0, 12).map((f) => <li key={f.id}><span className="chip mr-1">{f.kind}</span>{f.text}</li>)}</ul> : <p className="text-xs muted">Confirmed/rejected matches and approved facts appear here.</p>}
+    </Card>
+  );
+}
+
+function ModelPanel({ caps, loaded, onLoaded, onUnload }: { caps?: Capabilities; loaded: string; onLoaded: (e: ChatEngine, name: string) => void; onUnload: () => void }) {
+  const [progress, setProgress] = useState<{ progress: number; text: string }>();
+  const [err, setErr] = useState('');
+  const load = async (id: string, label: string, mb: number) => {
+    if (!confirm(`Download ${label} (~${mb} MB) into this browser's cache? It runs on your device; your data is not sent anywhere.`)) return;
+    setErr(''); setProgress({ progress: 0, text: 'Starting…' });
+    try { onLoaded(await loadWebLLM(id, setProgress), label); } catch (e) { setErr((e as Error).message); } finally { setProgress(undefined); }
+  };
+  return (
+    <Card title="Local language model (optional)">
+      <p className="text-sm">WebGPU: <b>{caps ? (caps.webgpu ? 'available' : 'not available') : '…'}</b> · WASM: <b>{caps?.wasm ? 'yes' : '…'}</b>{caps?.deviceMemoryGB ? ` · ~${caps.deviceMemoryGB} GB RAM` : ''}</p>
+      {loaded ? (
+        <div className="mt-2 text-sm"><span className="chip chip-doc">Loaded: {loaded}</span> <button className="btn ml-2" onClick={onUnload}>Unload</button></div>
+      ) : (
+        <ul className="mt-2 space-y-2 text-xs">{MODEL_CATALOG.map((m) => (
+          <li key={m.id} className="flex items-center justify-between gap-2"><span>{m.label}<br /><span className="muted">{m.downloadMB} MB · ~{m.memoryGB} GB memory</span></span>
+            <button className="btn" disabled={!caps?.webgpu || !!progress} onClick={() => load(m.id, m.label, m.downloadMB)}>Load</button></li>
+        ))}</ul>
+      )}
+      {progress && <div className="mt-2 text-xs"><div className="h-2 w-full overflow-hidden rounded-full bg-black/20"><div className="h-full bg-emerald-500" style={{ width: `${Math.round(progress.progress * 100)}%` }} /></div><div className="muted mt-1">{progress.text}</div></div>}
+      {err && <p role="alert" className="mt-2 text-xs text-red-500">{err}</p>}
+      <p className="mt-2 text-xs muted">The model only picks which genealogy tool to run when a question doesn’t match a known command, and writes a short summary of the tool’s facts. A grounding check throws away any summary that adds names, years or DNA figures. Every feature works without a model.{caps && !caps.webgpu ? ' This browser lacks WebGPU, so models can’t run here.' : ''}</p>
     </Card>
   );
 }

@@ -81,7 +81,7 @@ export function App() {
 function Brand({ small }: { small?: boolean }) {
   return (
     <a href="#/home" className="flex items-center gap-2">
-      <img src="/icon.svg" alt="" className={small ? 'h-7 w-7' : 'h-9 w-9'} />
+      <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className={small ? 'h-7 w-7' : 'h-9 w-9'} />
       <div><div className="font-serif text-lg font-semibold leading-none">Omni<span className="gold">Tree</span></div>{!small && <div className="text-[11px] muted">World Family Tree</div>}</div>
     </a>
   );

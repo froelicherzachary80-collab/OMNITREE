@@ -19,7 +19,7 @@ export function blankPerson(workspaceId: string, given = '', surname = '', sex?:
 
 export function PersonProfile({ person }: { person: Person }) {
   const store = useStore();
-  const { graph, sources, workspace } = store;
+  const { graph, workspace } = store;
   const [editing, setEditing] = useState(false);
   const [f, setF] = useState(() => formOf(person));
   const [relMode, setRelMode] = useState<'' | 'parent' | 'child' | 'partner'>('');
@@ -46,7 +46,7 @@ export function PersonProfile({ person }: { person: Person }) {
   const partners = graph.partners(person.id);
   const kids = graph.children(person.id);
   const sibs = graph.siblings(person.id);
-  const citations = person.events.flatMap((e) => e.citations.map((c) => ({ e, c })));
+  const citations = person.events.flatMap((e) => e.citations);
 
   return (
     <div className="space-y-4">
@@ -107,7 +107,7 @@ export function PersonProfile({ person }: { person: Person }) {
       </section>
       <section>
         <div className="label mb-1">Sources & citations</div>
-        {citations.length ? <ul className="text-sm space-y-1">{citations.map(({ e, c }, i) => <li key={i}>{EVENT_NAMES[e.type] ?? e.type}: <b>{sources.find((s) => s.id === c.sourceId)?.title ?? c.sourceId.replace(/^inline:/, '')}</b>{c.page ? `, ${c.page}` : ''}{c.quality !== undefined ? ` (quality ${c.quality}/3)` : ''}</li>)}</ul> : <p className="text-sm muted">No citations. Facts on this profile are unsourced.</p>}
+        {citations.length ? <CitationList person={person} /> : <p className="text-sm muted">No citations. Facts on this profile are unsourced.</p>}
         <AddCitation person={person} />
       </section>
       {person.extensions.length > 0 && <section><div className="label mb-1">Preserved GEDCOM extensions</div><pre className="panel-2 overflow-auto p-2 text-xs">{person.extensions.map((x) => x.lines.join('\n')).join('\n')}</pre></section>}
@@ -199,5 +199,47 @@ function AddCitation({ person }: { person: Person }) {
       <input className="input" placeholder="Page / detail" value={page} onChange={(e) => setPage(e.target.value)} aria-label="Page" />
       <div className="flex gap-2"><button className="btn btn-primary" onClick={save}>Save citation</button><button className="btn" onClick={() => setOpen(false)}>Cancel</button></div>
     </div>
+  );
+}
+
+/** Field-level citation editor: change page/quality, move a citation to another fact, or remove it. */
+function CitationList({ person }: { person: Person }) {
+  const store = useStore();
+  const [edit, setEdit] = useState<string>();
+  const [draft, setDraft] = useState({ page: '', quality: '', eventId: '' });
+  const rows = person.events.flatMap((e) => e.citations.map((c, i) => ({ e, c, i, key: `${e.id}:${i}` })));
+  const update = async (eventId: string, idx: number, change: { page?: string; quality?: number; moveTo?: string } | 'remove') => {
+    const src = person.events.find((e) => e.id === eventId)!;
+    const cit = src.citations[idx];
+    let events = person.events.map((e) => (e.id === eventId ? { ...e, citations: e.citations.filter((_, k) => k !== idx) } : e));
+    if (change !== 'remove') {
+      const next = { ...cit, page: change.page || undefined, quality: change.quality };
+      const target = change.moveTo || eventId;
+      events = events.map((e) => (e.id === target ? { ...e, citations: target === eventId ? [...e.citations.slice(0, idx), next, ...e.citations.slice(idx)] : [...e.citations, next] } : e));
+    }
+    events = events.filter((e) => e.type !== '_CITE' || e.citations.length);
+    await store.editPerson({ ...person, events }, person);
+    setEdit(undefined);
+  };
+  return (
+    <ul className="text-sm space-y-1">
+      {rows.map(({ e, c, i, key }) => (
+        <li key={key} className="panel-2 p-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="flex-1">{e.type === '_CITE' ? 'Profile' : EVENT_NAMES[e.type] ?? e.type}: <b>{store.sources.find((s) => s.id === c.sourceId)?.title ?? c.sourceId.replace(/^inline:/, '')}</b>{c.page ? `, ${c.page}` : ''}{c.quality !== undefined && !Number.isNaN(c.quality) ? ` (quality ${c.quality}/3)` : ''}</span>
+            <button className="btn" onClick={() => { setEdit(key); setDraft({ page: c.page ?? '', quality: c.quality !== undefined && !Number.isNaN(c.quality) ? String(c.quality) : '', eventId: e.id }); }}>Edit</button>
+            <button className="btn btn-danger" onClick={() => update(e.id, i, 'remove')} aria-label="Remove citation">Remove</button>
+          </div>
+          {edit === key && (
+            <div className="mt-2 grid gap-2 sm:grid-cols-4">
+              <input className="input" placeholder="Page / detail" value={draft.page} onChange={(x) => setDraft({ ...draft, page: x.target.value })} aria-label="Citation page" />
+              <select className="input" value={draft.quality} onChange={(x) => setDraft({ ...draft, quality: x.target.value })} aria-label="Evidence quality"><option value="">Quality not assessed</option><option value="0">0 · unreliable</option><option value="1">1 · questionable</option><option value="2">2 · secondary</option><option value="3">3 · direct/primary</option></select>
+              <select className="input" value={draft.eventId} onChange={(x) => setDraft({ ...draft, eventId: x.target.value })} aria-label="Supports fact">{person.events.map((ev) => <option key={ev.id} value={ev.id}>{ev.type === '_CITE' ? 'Whole profile' : `${EVENT_NAMES[ev.type] ?? ev.type} ${dateLabel(ev.date)}`}</option>)}</select>
+              <div className="flex gap-2"><button className="btn btn-primary" onClick={() => update(e.id, i, { page: draft.page, quality: draft.quality === '' ? undefined : Number(draft.quality), moveTo: draft.eventId })}>Save</button><button className="btn" onClick={() => setEdit(undefined)}>Cancel</button></div>
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }

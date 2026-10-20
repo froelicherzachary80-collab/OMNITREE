@@ -8,4 +8,7 @@
 - **Exports.** GEDCOM export can hide living-private people. Backups are passphrase-encrypted, and including DNA is a separate opt-in.
 - **Deletion.** "Delete workspace" removes all of the workspace's tables, including DNA.
 - **Eviction.** Browsers can clear local storage. OmniTree asks for persistent storage, and you should still keep encrypted backups.
+- **Map tiles.** The World Map loads basemap tiles from demotiles.maplibre.org. Only tile requests (map area and zoom) are sent; no family data is. If they can't load, an offline map is used.
+- **Local model.** Loading an optional model downloads its weights from Hugging Face or the MLC CDN into browser cache. Inference then runs on your device, and prompts never leave it.
+- **Hosting.** The GitHub Pages site serves only static code. Each visitor's data stays in their own browser.
 - **Fixtures.** Every bundled sample person and genotype is synthetic and fictional.

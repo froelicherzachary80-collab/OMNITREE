@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+- Optional WebLLM local model: tool selection limited to the supported tool list, summaries of tool facts, grounding check that rejects added names, years or cM figures. Every feature still works without a model.
+- MapLibre GL map with clustering, branch colours, migration lines and a year/generation filter. Offline SVG fallback.
+- Offline gazetteer of about 170 countries, regions and cities, used only for approximate positions, always labelled.
+- Merge history with exact undo (Dexie schema v2 adds the `merges` table).
+- Per-fact citation editor.
+- Relative build paths and a GitHub Pages deploy workflow (test, build, publish).
+
 ## 0.1.0
 - Project setup: React 18, TypeScript, Vite, Tailwind, Dexie, Cytoscape, Vitest, Playwright, PWA manifest and service worker.
 - GEDCOM 5.5/5.5.1/7 importer with preview, diagnostics, atomic commit and rollback. GEDZIP. GEDCOM 5.5.1 exporter.
