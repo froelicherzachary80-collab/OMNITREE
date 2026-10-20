@@ -1,7 +1,7 @@
 # Testing
 
 ```bash
-npm test                 # Vitest: 63 tests across 7 files
+npm test                 # Vitest: 57 tests across 7 files
 npx tsc -p .             # type checking
 npm run build            # production build
 PLAYWRIGHT_CHROMIUM=/opt/pw-browsers/chromium npm run test:e2e   # end-to-end test
