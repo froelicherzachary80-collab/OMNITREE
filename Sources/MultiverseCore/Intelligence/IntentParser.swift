@@ -43,7 +43,7 @@ public enum IntentParser {
     static let selfWords: Set<String> = ["me", "i", "myself", "my self"]
 
     public static func parse(_ input: String) -> ResearchIntent {
-        let text = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = input.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: ".!?"))
         let lower = text.lowercased()
         if lower.isEmpty { return .help }
         if ["help", "what can you do", "what can you do?", "?"].contains(lower) { return .help }

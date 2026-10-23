@@ -1,0 +1,4 @@
+{"head":{"vars":["label"]},"results":{"bindings":[
+{"label":{"type":"literal","value":"Test Performer"},"description":{"type":"literal","value":"fictional test actress"},"birth":{"type":"literal","value":"+2006-06-25T00:00:00Z"},"birthPlaceLabel":{"type":"literal","value":"Testville"},"sex":{"type":"uri","value":"http://www.wikidata.org/entity/Q6581072"},"occupationLabel":{"type":"literal","value":"film actor"},"countryLabel":{"type":"literal","value":"Testland"},"human":{"type":"literal","value":"true"},"article":{"type":"uri","value":"https://en.wikipedia.org/wiki/Test_Performer"}},
+{"label":{"type":"literal","value":"Test Performer"},"occupationLabel":{"type":"literal","value":"television actor"},"human":{"type":"literal","value":"true"}}
+]}}

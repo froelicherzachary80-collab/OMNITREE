@@ -1,0 +1,5 @@
+{"head":{"vars":[]},"results":{"bindings":[
+{"prop":{"type":"literal","value":"P25"},"rel":{"type":"uri","value":"http://www.wikidata.org/entity/Q900002"},"relLabel":{"type":"literal","value":"Test Mother"}},
+{"prop":{"type":"literal","value":"P3373"},"rel":{"type":"uri","value":"http://www.wikidata.org/entity/Q900003"},"relLabel":{"type":"literal","value":"Test Sibling"}},
+{"prop":{"type":"literal","value":"P26"},"rel":{"type":"uri","value":"http://www.wikidata.org/entity/Q900004"},"relLabel":{"type":"literal","value":"Test Ex"},"start":{"type":"literal","value":"+2020-01-01T00:00:00Z"},"end":{"type":"literal","value":"+2022-01-01T00:00:00Z"}}
+]}}

@@ -406,7 +406,7 @@ public final class GraphStore: @unchecked Sendable {
             return MediaProject(id: r.string("id")!, title: r.string("title")!, kind: r.string("kind")!, year: r.int("year"),
                                 wikidataQID: qid, url: r.string("url"))
         }
-        try db.run("INSERT OR REPLACE INTO media_project (id, title, kind, year, wikidata_qid, url) VALUES (?,?,?,?,?,?)",
+        try db.run("INSERT OR IGNORE INTO media_project (id, title, kind, year, wikidata_qid, url) VALUES (?,?,?,?,?,?)",
                    p.id, p.title, p.kind, p.year, p.wikidataQID, p.url)
         return p
     }

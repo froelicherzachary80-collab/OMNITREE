@@ -75,9 +75,12 @@ public final class ResearchScheduler: @unchecked Sendable {
 
     func save(_ j: ResearchJob) throws {
         try store.db.run("""
-            INSERT OR REPLACE INTO research_job (id, kind, target, person_id, status, priority, progress, cursor, attempts, last_error,
+            INSERT INTO research_job (id, kind, target, person_id, status, priority, progress, cursor, attempts, last_error,
                 created_at, scheduled_for, started_at, finished_at, refresh_interval, dedup_key)
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ON CONFLICT(id) DO UPDATE SET status=excluded.status, priority=excluded.priority, progress=excluded.progress,
+                cursor=excluded.cursor, attempts=excluded.attempts, last_error=excluded.last_error,
+                scheduled_for=excluded.scheduled_for, started_at=excluded.started_at, finished_at=excluded.finished_at
             """, params: [j.id, j.kind.rawValue, j.target, j.personID, j.status.rawValue, j.priority, j.progress, j.cursor, j.attempts,
                           j.lastError, j.createdAt, j.scheduledFor, j.startedAt, j.finishedAt, j.refreshInterval, j.dedupKey])
     }
