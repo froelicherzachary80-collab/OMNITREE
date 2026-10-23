@@ -1,0 +1,73 @@
+# XcodeGen spec — run `xcodegen generate` in this folder (see scripts/bootstrap.sh).
+name: MultiverseTree
+options:
+  bundleIdPrefix: com.multiversetree
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""          # set your Apple Developer Team ID (or pick it in Xcode → Signing)
+    CODE_SIGN_STYLE: Automatic
+packages:
+  MultiverseCore:
+    path: ..
+targets:
+  MultiverseTree:
+    type: application
+    platform: iOS
+    sources:
+      - path: MultiverseTree
+    dependencies:
+      - package: MultiverseCore
+        product: MultiverseCore
+      - sdk: Metal.framework
+      - sdk: MetalKit.framework
+      - sdk: MetalPerformanceShaders.framework
+      - sdk: BackgroundTasks.framework
+    info:
+      path: MultiverseTree/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Multiverse Tree
+        UILaunchScreen:
+          UIColorName: AccentColor
+        UIApplicationSupportsIndirectInputEvents: true
+        UIRequiredDeviceCapabilities: [metal]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UIBackgroundModes: [processing, fetch]
+        BGTaskSchedulerPermittedIdentifiers: [com.multiversetree.research]
+        NSLocalNetworkUsageDescription: Connect to your own computer running a free local AI model (Ollama) or the mvt research companion.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: org.gedcom.ged
+            UTTypeDescription: GEDCOM Family Tree
+            UTTypeConformsTo: [public.plain-text]
+            UTTypeTagSpecification:
+              public.filename-extension: [ged, gedcom]
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: GEDCOM Family Tree
+            LSItemContentTypes: [org.gedcom.ged]
+            LSHandlerRank: Alternate
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.multiversetree.app
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        MTL_FAST_MATH: YES
+        ENABLE_PREVIEWS: YES
+schemes:
+  MultiverseTree:
+    build:
+      targets:
+        MultiverseTree: all
+    run:
+      config: Debug
+    archive:
+      config: Release

@@ -169,3 +169,23 @@ func stableHash(_ s: String) -> UInt32 {
     for b in s.utf8 { h = (h ^ UInt32(b)) &* 16_777_619 }
     return h
 }
+
+extension GraphStore {
+    /// Attributes for every node of `graph`, in index order, loaded in two streaming queries.
+    public func nodeAttributes(for graph: GraphIndex) throws -> [NodeAttributes] {
+        var byID: [EntityID: NodeAttributes] = [:]
+        try db.forEach("SELECT id, display_name, country, birth_year, is_private, is_sample FROM person") { r in
+            let id = r.string("id")!
+            byID[id] = NodeAttributes(name: r.string("display_name") ?? "", categories: [], country: r.string("country"),
+                                      birthYear: r.int("birth_year"), communities: [], isPrivate: r.bool("is_private"), isSample: r.bool("is_sample"))
+        }
+        try db.forEach("SELECT community_id, person_id FROM community_member") { r in
+            byID[r.string("person_id")!]?.communities.insert(r.string("community_id")!)
+        }
+        return graph.nodeIDs.enumerated().map { i, id in
+            var a = byID[id] ?? NodeAttributes(name: "?", categories: [], country: nil, birthYear: nil, communities: [], isPrivate: false, isSample: false)
+            a.categories = graph.categories[i]
+            return a
+        }
+    }
+}

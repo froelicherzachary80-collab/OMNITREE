@@ -1,0 +1,28 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  core-linux:
+    name: Core engine tests (Linux)
+    runs-on: ubuntu-latest
+    container: swift:6.0-noble
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update && apt-get install -y libsqlite3-dev
+      - run: swift build
+      - run: swift test
+
+  ios-app:
+    name: iOS app build (simulator, unsigned)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen
+      - run: cd App && xcodegen generate
+      - run: swift test
+      - run: |
+          xcodebuild -project App/MultiverseTree.xcodeproj -scheme MultiverseTree \
+            -destination 'generic/platform=iOS Simulator' -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO build
